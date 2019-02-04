@@ -35,6 +35,7 @@ Application3D::~Application3D()
 glm::mat4 helicopter_base = world * helicopter_base_trans * helicopter_base_rot;
 glm::mat4 base_rotor = helicopter_base * propeller_base_trans * propeller_base_rot;
 glm::mat4 cylinder_rotor = base_rotor * propeller_rotor_trans * propeller_base_rot;
+glm::mat4
 
 bool Application3D::startup() 
 {
