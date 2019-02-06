@@ -34,8 +34,8 @@ Application3D::~Application3D()
 
 glm::mat4 helicopter_base = world * helicopter_base_trans * helicopter_base_rot;
 glm::mat4 base_rotor = helicopter_base * propeller_base_trans * propeller_base_rot;
-glm::mat4 cylinder_rotor = base_rotor * propeller_rotor_trans * propeller_base_rot;
-glm::mat4
+glm::mat4 propeller_rotor = base_rotor * propeller_rotor_trans * propeller_base_rot;
+
 
 bool Application3D::startup() 
 {
@@ -44,8 +44,8 @@ bool Application3D::startup()
 	helicopter_base_trans = glm::translate(helicopter_base, vec3(0, 1, 0));
 
 	//propeller
-	propeller_base_rot = glm::rotate(cylinder_rotor, 0.0f, vec3(0, 1, 0));
-	propeller_base_trans = glm::translate(cylinder_rotor, vec3(0, 1, 0));
+	propeller_base_rot = glm::rotate(propeller_rotor, 0.0f, vec3(0, 1, 0));
+	propeller_base_trans = glm::translate(propeller_rotor, vec3(0, 1, 0));
 
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
 
@@ -82,6 +82,7 @@ void Application3D::update(float deltaTime)
 	// draw a simple grid with gizmos
 	vec4 white(1);
 	vec4 black(0, 0, 0, 1);
+	vec4 red(1, 0, 0, 1);
 	for (int i = 0; i < 21; ++i)
 	{
 		Gizmos::addLine(vec3(-10 + i, 0, 10),
@@ -108,9 +109,52 @@ void Application3D::update(float deltaTime)
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
 
+	helicopter_base = world * helicopter_base_trans * helicopter_base_rot;
+	base_rotor = helicopter_base * propeller_base_trans * propeller_base_rot;
+	propeller_rotor = base_rotor * propeller_rotor_trans * propeller_rotor_rot;
+	//the bullet has no parent, it has an initial rotation of the barrels rotation in world
+	propeller_rotor = propeller_rotor * propeller_rotor_trans * propeller_rotor_rot;
+
 	if (input->isKeyDown(aie::INPUT_KEY_ESCAPE))
 		quit();
 
+	vec3 forward_helicopter = helicopter_base[2] * (10 * deltaTime);
+	if (input->isKeyDown(aie::INPUT_KEY_W))
+	{
+		helicopter_base_trans = helicopter_base_trans * glm::translate(forward_helicopter);
+	}
+	if (input->isKeyDown(aie::INPUT_KEY_S))
+	{
+		helicopter_base_trans = helicopter_base_trans * glm::translate(-forward_helicopter);
+	}
+
+	// input :: rotates the Tank left and right
+	if (input->isKeyDown(aie::INPUT_KEY_A))
+		helicopter_base_rot = glm::rotate(helicopter_base_rot, 0.1f, vec3(0, 1, 0));
+
+	if (input->isKeyDown(aie::INPUT_KEY_D))
+		helicopter_base_rot = glm::rotate(helicopter_base_rot, -0.1f, vec3(0, 1, 0));
+
+	// input :: rotate just the turret right and left
+	if (input->isKeyDown(aie::INPUT_KEY_RIGHT))
+	{
+		propeller_base_rot = glm::rotate(propeller_base_rot, -.05f, vec3(0, 1, 0));
+	}
+	if (input->isKeyDown(aie::INPUT_KEY_LEFT))
+	{
+		propeller_base_rot = glm::rotate(propeller_base_rot, .05f, vec3(0, 1, 0));
+	}
+	//input :: rotate barrel
+	if (input->isKeyUp(aie::INPUT_KEY_UP))
+	{
+
+		propeller_rotor_rot = propeller_rotor_rot * glm::rotate(-.05f, vec3(0, 0, 1));
+	}
+	if (input->isKeyUp(aie::INPUT_KEY_DOWN))
+	{
+
+		propeller_rotor_rot = propeller_rotor_rot * glm::rotate(.05f, vec3(0, 0, 1));
+	}
 }
 
 void Application3D::draw()
